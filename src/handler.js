@@ -103,7 +103,6 @@ async function updateProgress(event, context) {
   return success;
 }
 
-// oh my... this got out of hand refactor for sanity
 async function broadcast(event, context) {
   // info from table stream, we'll learn about connections
   // disconnections, messages, etc
@@ -234,6 +233,21 @@ async function unsubscribeChannel(event, context) {
   return success;
 }
 
+const streamOn = function(event, context, callback) {
+  const device = JSON.parse(event.body).device;
+  const response = {
+    statusCode: 200,
+    body: JSON.stringify({
+      message: `We will stream on ${device}.`,
+    }),
+  };
+
+
+
+  callback(null, response);
+};
+
+
 module.exports = {
   connectionManager,
   defaultMessage,
@@ -241,5 +255,6 @@ module.exports = {
   broadcast,
   subscribeChannel,
   unsubscribeChannel,
-  channelManager
+  channelManager,
+  streamOn
 };
