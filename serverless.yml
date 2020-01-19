@@ -23,6 +23,8 @@ org: lawrencexiao
 provider:
   name: aws
   runtime: nodejs12.x
+  stage: dev
+  websocketApiRouteSelectionExpression: $request.body.action
 
 # you can overwrite defaults here
 #  stage: dev
@@ -58,8 +60,13 @@ provider:
 #    - exclude-me-dir/**
 
 functions:
-  hello:
-    handler: handler.hello
+  connectionHandler:
+    handler: handler.connectionManager
+    events:
+      - websocket:
+          route: $connect
+      - websocket:
+          route: $disconnect
 #    The following are a few example events you can configure
 #    NOTE: Please make sure to change your handler code to work with those events
 #    Check the event documentation for details
