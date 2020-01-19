@@ -58,31 +58,31 @@ async function defaultMessage(event, context) {
   return success;
 }
 
-async function sendMessage(event, context) {
+async function updateProgress(event, context) {
   // save message for future history
   // saving with timestamp allows sorting
   // maybe do ttl?
 
   const body = JSON.parse(event.body);
   const messageId = `${db.Message.Prefix}${Date.now()}`;
-  const name = body.name
+  const device = body.device
     .replace(/[^a-z0-9\s-]/gi, "")
     .trim()
     .replace(/\+s/g, "-");
-  const content = sanitize(body.content, {
+  const progress = sanitize(body.progress, {
     allowedTags: ["ul", "ol", "b", "i", "em", "strike", "pre", "strong", "li"],
     allowedAttributes: {}
   });
 
   // save message in database for later
-  const item = await db.Client.put({
+  await db.Client.put({
     TableName: db.Table,
     Item: {
       [db.Message.Primary.Key]: `${db.Channel.Prefix}${body.channelId}`,
       [db.Message.Primary.Range]: messageId,
       ConnectionId: `${event.requestContext.connectionId}`,
-      Name: name,
-      Content: content
+      Device: device,
+      Progress: progress
     }
   }).promise();
 
@@ -94,8 +94,8 @@ async function sendMessage(event, context) {
     return wsClient.send(subscriberId, {
       event: "channel_message",
       channelId: body.channelId,
-      name,
-      content
+      device,
+      progress
     });
   });
 
@@ -185,14 +185,6 @@ async function broadcast(event, context) {
   return success;
 }
 
-// module.exports.loadHistory = async (event, context) => {
-//   // only allow first page of history, otherwise this could blow up a table fast
-//   // pagination would be interesting to implement as an exercise!
-//   return await db.Client.query({
-//     TableName: db.Table
-//   }).promise();
-// };
-
 async function channelManager(event, context) {
   const action = JSON.parse(event.body).action;
   switch (action) {
@@ -230,7 +222,7 @@ async function subscribeChannel(event, context) {
 
 async function unsubscribeChannel(event, context) {
   const channelId = JSON.parse(event.body).channelId;
-  const item = await db.Client.delete({
+  await db.Client.delete({
     TableName: db.Table,
     Key: {
       [db.Channel.Connections.Key]: `${db.Channel.Prefix}${channelId}`,
@@ -245,7 +237,7 @@ async function unsubscribeChannel(event, context) {
 module.exports = {
   connectionManager,
   defaultMessage,
-  sendMessage,
+  updateProgress,
   broadcast,
   subscribeChannel,
   unsubscribeChannel,

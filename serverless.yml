@@ -103,11 +103,11 @@ functions:
           route: $default
 
   # handle chat app messages
-  sendMessage:
-    handler: src/handler.sendMessage
+  updateProgress:
+    handler: src/handler.updateProgress
     events:
       - websocket:
-          route: sendMessage
+          route: updateProgress
 
   # Channel Subscriptions
   channelManager:
